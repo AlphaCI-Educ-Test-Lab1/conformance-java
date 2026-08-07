@@ -4,7 +4,7 @@ package edu.alphaci;
 public class Calculator {
 
     public int add(int a, int b) {
-        throw new UnsupportedOperationException("TODO: implement add");
+        return a + b;
     }
 
     public int subtract(int a, int b) {
