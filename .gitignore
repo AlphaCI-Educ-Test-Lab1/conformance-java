@@ -1,0 +1,7 @@
+target/
+*.class
+.idea/
+*.iml
+
+# Teacher tests, injected at grade time
+src/test/java/hidden/

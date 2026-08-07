@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.alphaci</groupId>
+  <artifactId>conformance-java</artifactId>
+  <version>0.1.0</version>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.11.3</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.12</version>
+        <executions>
+          <execution><goals><goal>prepare-agent</goal></goals></execution>
+          <!-- Bound to `verify`, which is why the pipeline runs `mvn verify`
+               and not `mvn test`: with `test` the report is never written
+               and the coverage gate fails on a missing file. -->
+          <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals><goal>report</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.2</version>
+      </plugin>
+
+      <!-- LINT (stage 02). These three plugins exist because the pipeline
+           invokes them: languages/java/language.yml runs
+           `mvn checkstyle:check pmd:check` and `mvn spotless:check`.
+           Without them declared here `spotless` does not even resolve as a
+           plugin prefix ("No plugin found for prefix"), and checkstyle
+           silently downloads whatever version is current and applies Sun
+           defaults - 80-column lines and mandatory Javadoc on a first-year
+           exercise. Pinning the versions AND the ruleset is what makes the
+           lint mark reproducible on the student's own machine. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.6.0</version>
+        <configuration>
+          <configLocation>checkstyle.xml</configLocation>
+          <consoleOutput>true</consoleOutput>
+          <!-- Student sources only. Hidden tests are injected unformatted
+               at grade time and are not the student's to style. -->
+          <includeTestSourceDirectory>false</includeTestSourceDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.26.0</version>
+        <configuration>
+          <!-- No <rulesets>: the plugin default is a deliberately small
+               curated set (unused variables, empty blocks, unnecessary
+               constructs), which is already the structural-only scope we
+               want. Naming a category ruleset instead pulls in dozens of
+               style opinions this course does not teach. -->
+          <includeTests>false</includeTests>
+          <printFailingErrors>true</printFailingErrors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.44.0</version>
+        <configuration>
+          <java>
+            <!-- removeUnusedImports ONLY, deliberately. A full formatter
+                 (google-java-format) reindents to 2 spaces and every file
+                 this scaffold generates is written at 4 - so spotless:check
+                 would fail on a repository the student has never opened.
+                 Indentation is checked by checkstyle instead, against the
+                 width the generator actually emits. -->
+            <removeUnusedImports/>
+          </java>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
